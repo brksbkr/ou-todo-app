@@ -2,14 +2,19 @@
   "expo": {
     "name": "ou-todo-app",
     "slug": "ou-todo-app",
+    "scheme": "outodoapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-notifications"
+    ],
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.brksbkr.outodoapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

@@ -1,3 +1,4 @@
+import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
@@ -17,6 +18,15 @@ import {
   SafeAreaProvider,
   SafeAreaView,
 } from 'react-native-safe-area-context';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const INITIAL_TASKS = [
   {
@@ -48,11 +58,64 @@ export default function App() {
     setModalVisible(false);
   };
 
+  const scheduleReminder = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'Task Reminders',
+          importance: Notifications.AndroidImportance.HIGH,
+        });
+      }
+
+      const { status } =
+        await Notifications.requestPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission required',
+          'Notifications must be allowed to schedule a reminder.'
+        );
+        return;
+      }
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'OU Task Reminder',
+          body: `You have ${tasks.length} ${
+            tasks.length === 1 ? 'task' : 'tasks'
+          } remaining.`,
+          sound: 'default',
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 5,
+          repeats: false,
+          channelId: 'default',
+        },
+      });
+
+      Alert.alert(
+        'Reminder scheduled',
+        'The notification will appear in 5 seconds.'
+      );
+    } catch (error) {
+      console.error('Notification error:', error);
+
+      Alert.alert(
+        'Notification error',
+        'The reminder could not be scheduled.'
+      );
+    }
+  };
+
   const addTask = () => {
     const cleanedTask = newTask.trim();
 
     if (!cleanedTask) {
-      Alert.alert('Task required', 'Enter a task before adding it.');
+      Alert.alert(
+        'Task required',
+        'Enter a task before adding it.'
+      );
       return;
     }
 
@@ -80,7 +143,9 @@ export default function App() {
           style: 'destructive',
           onPress: () => {
             setTasks((currentTasks) =>
-              currentTasks.filter((task) => task.id !== taskToDelete.id)
+              currentTasks.filter(
+                (task) => task.id !== taskToDelete.id
+              )
             );
           },
         },
@@ -110,8 +175,14 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <StatusBar style="light" backgroundColor="#841617" />
+      <SafeAreaView
+        style={styles.safeArea}
+        edges={['top', 'left', 'right']}
+      >
+        <StatusBar
+          style="light"
+          backgroundColor="#841617"
+        />
 
         <View style={styles.header}>
           <Image
@@ -125,10 +196,13 @@ export default function App() {
               UNIVERSITY OF OKLAHOMA
             </Text>
 
-            <Text style={styles.title}>Student To-Do List</Text>
+            <Text style={styles.title}>
+              Student To-Do List
+            </Text>
 
             <Text style={styles.taskCount}>
-              {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} remaining
+              {tasks.length}{' '}
+              {tasks.length === 1 ? 'task' : 'tasks'} remaining
             </Text>
           </View>
         </View>
@@ -141,11 +215,14 @@ export default function App() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
               styles.listContent,
-              tasks.length === 0 && styles.emptyListContent,
+              tasks.length === 0 &&
+                styles.emptyListContent,
             ]}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyTitle}>Your list is empty</Text>
+                <Text style={styles.emptyTitle}>
+                  Your list is empty
+                </Text>
 
                 <Text style={styles.emptyText}>
                   Add a task to begin organizing your work.
@@ -163,7 +240,23 @@ export default function App() {
               pressed && styles.buttonPressed,
             ]}
           >
-            <Text style={styles.addTaskButtonText}>Add Task</Text>
+            <Text style={styles.addTaskButtonText}>
+              Add Task
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Schedule task reminder"
+            onPress={scheduleReminder}
+            style={({ pressed }) => [
+              styles.reminderButton,
+              pressed && styles.buttonPressed,
+            ]}
+          >
+            <Text style={styles.reminderButtonText}>
+              Schedule Reminder
+            </Text>
           </Pressable>
         </View>
 
@@ -175,12 +268,18 @@ export default function App() {
         >
           <KeyboardAvoidingView
             style={styles.modalBackdrop}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={
+              Platform.OS === 'ios' ? 'padding' : undefined
+            }
           >
             <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Add a New Task</Text>
+              <Text style={styles.modalTitle}>
+                Add a New Task
+              </Text>
 
-              <Text style={styles.inputLabel}>Task description</Text>
+              <Text style={styles.inputLabel}>
+                Task description
+              </Text>
 
               <TextInput
                 value={newTask}
@@ -207,7 +306,9 @@ export default function App() {
                     pressed && styles.buttonPressed,
                   ]}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={styles.cancelButtonText}>
+                    Cancel
+                  </Text>
                 </Pressable>
 
                 <Pressable
@@ -218,7 +319,9 @@ export default function App() {
                     pressed && styles.buttonPressed,
                   ]}
                 >
-                  <Text style={styles.confirmButtonText}>Add Task</Text>
+                  <Text style={styles.confirmButtonText}>
+                    Add Task
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -354,6 +457,22 @@ const styles = StyleSheet.create({
   addTaskButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
+    fontWeight: '800',
+  },
+
+  reminderButton: {
+    borderWidth: 2,
+    borderColor: '#841617',
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    marginTop: 10,
+  },
+
+  reminderButtonText: {
+    color: '#841617',
+    fontSize: 16,
     fontWeight: '800',
   },
 
