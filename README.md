@@ -1,4 +1,3 @@
-````markdown
 # OU Student To-Do List
 
 A simple React Native to-do list app created with Expo.
@@ -40,25 +39,3 @@ Install the dependencies:
 
 ```bash
 npm install
-````
-
-Build and run the Android development version:
-
-```bash
-npx expo run:android
-```
-
-After the first build, the development server can be started with:
-
-```bash
-npx expo start --dev-client
-```
-
-## Technologies
-
-* React Native
-* Expo
-* Expo Notifications
-
-```
-```
